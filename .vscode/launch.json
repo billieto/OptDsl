@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug OptDSL with File",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${command:dotrush.activeTargetPath}",
+      "args": [
+        "samples/hello_world.optd"
+      ],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
