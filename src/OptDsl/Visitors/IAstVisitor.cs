@@ -1,15 +1,17 @@
-using OptDsl.Composite.Core;
+using OptDsl.Composites.Grammar;
 
 namespace OptDsl.Visitors;
 
 public interface IAstVisitor
 {
-    void Visit(AstComposite composite);
-    void Visit(AstLeaf leaf);
+    void Visit(AstTranslationUnit translationUnit);
+    void Visit(AstOptimizationBlock optimizationBlock);
+    void Visit(AstOptimizationStatement optimizationStatement);
 }
     
-public interface IAstVisitor<T>
+public interface IAstVisitor<out T>
 {
-    T Visit(AstComposite composite);
-    T Visit(AstLeaf leaf);
+    T Visit(AstTranslationUnit translationUnit);
+    T Visit(AstOptimizationBlock optimizationBlock);
+    T Visit(AstOptimizationStatement optimizationStatement);
 }

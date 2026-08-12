@@ -1,2 +1,0 @@
-namespace OptDsl.Composite.Grammar;
-

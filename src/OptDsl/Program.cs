@@ -1,4 +1,5 @@
 using Antlr4.Runtime;
+using OptDsl.Visitors;
 
 namespace OptDsl;
 
@@ -36,8 +37,15 @@ static class Program
         OptDslParser parser = new(tokens);
 
         // 4. Parse and print the tree
-        var tree = parser.translation_unit();
-        Console.WriteLine("Syntax Tree:");
-        Console.WriteLine(tree.ToStringTree(parser));
+        var cstRoot = parser.translation_unit();
+        Console.WriteLine("Concrete Syntax Tree:");
+        Console.WriteLine(cstRoot.ToStringTree(parser));
+
+        CstToAstVisitor cstToAstVisitor = new();
+        var astRoot = cstToAstVisitor.Visit(cstRoot);
+
+        GraphPrinterVisitor graphPrinterVisitor = new();
+        astRoot.Accept(graphPrinterVisitor);
+        graphPrinterVisitor.Dispose();
     }
 }
