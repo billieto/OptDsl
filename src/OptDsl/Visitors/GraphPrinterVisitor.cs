@@ -1,31 +1,21 @@
+using DotNetGraph.Compilation;
+using DotNetGraph.Core;
+using DotNetGraph.Extensions;
 using OptDsl.Composites.Core;
 using OptDsl.Composites.Grammar;
 
 namespace OptDsl.Visitors;
 
-// TODO: See if i can replace it with https://github.com/vfrz/DotNetGraph
 public class GraphPrinterVisitor : IAstVisitor
 {
     private int _counter = 0;
-    private readonly StreamWriter _sw;
     private readonly Stack<string> _parentStack = new();
-
-    public GraphPrinterVisitor()
-    {
-        Directory.CreateDirectory("debug");
-        _sw = File.CreateText("debug/AST.dot");
-        _sw.AutoFlush = true;
-        _sw.WriteLine("digraph AST {");
-    }
-
-    public void Dispose()
-    {
-        _sw.WriteLine("}");
-        _sw.Dispose();
-    }
+    private readonly DotGraph _graph = new DotGraph().Directed().WithIdentifier("AST");
 
     public void Visit(AstTranslationUnit translationUnit)
     {
+        Directory.CreateDirectory("debug");
+
         WriteNodeAndTraverse(translationUnit.Name, translationUnit.Children);
     }
 
@@ -51,11 +41,20 @@ public class GraphPrinterVisitor : IAstVisitor
     {
         string myId = $"node{_counter++}";
 
-        _sw.WriteLine($"  {myId} [label=\"{label}\"];");
+        var dotNode = new DotNode()
+            .WithIdentifier(myId)
+            .WithLabel(label)
+            .WithShape(DotNodeShape.Box);
+
+        _graph.Add(dotNode);
 
         if (_parentStack.Count > 0)
         {
-            _sw.WriteLine($"  {_parentStack.Peek()} -> {myId};");
+            var edge = new DotEdge()
+                .From(_parentStack.Peek())
+                .To(myId);
+
+            _graph.Add(edge);
         }
 
         _parentStack.Push(myId);
@@ -66,5 +65,16 @@ public class GraphPrinterVisitor : IAstVisitor
         }
 
         _parentStack.Pop();
+    }
+
+    public static async Task SaveAsync(AstElement root)
+    {
+        var visitor = new GraphPrinterVisitor();
+        root.Accept(visitor);
+
+        Directory.CreateDirectory("debug");
+        await using var writer = new StreamWriter("debug/AST.dot");
+        var ctx = new CompilationContext(writer, new CompilationOptions());
+        await visitor._graph.CompileAsync(ctx);
     }
 }

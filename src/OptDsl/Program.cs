@@ -42,14 +42,15 @@ static class Program
         Console.WriteLine("Concrete Syntax Tree:");
         Console.WriteLine(cstRoot.ToStringTree(parser));
 
-        CstToAstVisitor cstToAstVisitor = new();
-        var astRoot = cstToAstVisitor.Visit(cstRoot);
-        
+        // Building the CST graph
         CstGraphPrinter cgp = new(cstRoot);
         await cgp.Export();
 
-        GraphPrinterVisitor graphPrinterVisitor = new();
-        astRoot.Accept(graphPrinterVisitor);
-        graphPrinterVisitor.Dispose();
+        // Building the AST
+        CstToAstVisitor cstToAstVisitor = new();
+        var astRoot = cstToAstVisitor.Visit(cstRoot);
+
+        // Building the AST graph
+        await GraphPrinterVisitor.SaveAsync(astRoot);
     }
 }
