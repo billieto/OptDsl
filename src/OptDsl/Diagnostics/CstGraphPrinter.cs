@@ -3,7 +3,7 @@ using DotNetGraph.Compilation;
 using DotNetGraph.Core;
 using DotNetGraph.Extensions;
 
-namespace OptDsl.Extra;
+namespace OptDsl.Diagnostics;
 
 public class CstGraphPrinter(IParseTree tree)
 {

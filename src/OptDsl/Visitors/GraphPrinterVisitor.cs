@@ -7,7 +7,6 @@ namespace OptDsl.Visitors;
 public class GraphPrinterVisitor : IAstVisitor
 {
     private int _counter = 0;
-    private const string path = "debug/AST.dot";
     private readonly StreamWriter _sw;
     private readonly Stack<string> _parentStack = new();
 

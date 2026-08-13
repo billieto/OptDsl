@@ -1,5 +1,5 @@
 using Antlr4.Runtime;
-using OptDsl.Extra;
+using OptDsl.Diagnostics;
 using OptDsl.Visitors;
 
 namespace OptDsl;
