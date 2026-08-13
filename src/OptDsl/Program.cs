@@ -1,11 +1,12 @@
 using Antlr4.Runtime;
+using OptDsl.Extra;
 using OptDsl.Visitors;
 
 namespace OptDsl;
 
 static class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         // 1. Check if the user actually provided an argument
         if (args.Length == 0)
@@ -43,6 +44,9 @@ static class Program
 
         CstToAstVisitor cstToAstVisitor = new();
         var astRoot = cstToAstVisitor.Visit(cstRoot);
+        
+        CstGraphPrinter cgp = new(cstRoot);
+        await cgp.Export();
 
         GraphPrinterVisitor graphPrinterVisitor = new();
         astRoot.Accept(graphPrinterVisitor);

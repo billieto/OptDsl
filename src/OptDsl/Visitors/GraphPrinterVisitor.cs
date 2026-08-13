@@ -3,6 +3,7 @@ using OptDsl.Composites.Grammar;
 
 namespace OptDsl.Visitors;
 
+// TODO: See if i can replace it with https://github.com/vfrz/DotNetGraph
 public class GraphPrinterVisitor : IAstVisitor
 {
     private int _counter = 0;
