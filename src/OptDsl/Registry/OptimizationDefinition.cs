@@ -1,9 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using OptDsl.Composites.Values;
 
-namespace OptDsl.Semantics.Registry;
-
-public record ParameterDefinition(string Name, DataType ExpectedType);
+namespace OptDsl.Registry;
 
 public class OptimizationDefinition(string name, params ParameterDefinition[] parameters)
 {

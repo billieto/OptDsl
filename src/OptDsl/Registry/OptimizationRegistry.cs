@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using OptDsl.Composites.Values;
 
-namespace OptDsl.Semantics.Registry;
+namespace OptDsl.Registry;
 
 public static class OptimizationRegistry
 {

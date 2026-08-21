@@ -1,10 +1,9 @@
 using System.Text;
-using OptDsl.Composites.Grammar;
+using OptDsl.Composites.Tree;
 using OptDsl.Composites.Values;
-using OptDsl.Semantics.Registry;
-using OptDsl.Visitors;
+using OptDsl.Registry;
 
-namespace OptDsl.Semantics;
+namespace OptDsl.Visitors;
 
 public class SemanticAnalyzerVisitor : IAstVisitor
 {

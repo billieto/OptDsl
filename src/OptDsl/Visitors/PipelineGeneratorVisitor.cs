@@ -1,15 +1,12 @@
 using OptDsl.Composites.Core;
-using OptDsl.Composites.Grammar;
-using OptDsl.Composites.Values;
+using OptDsl.Composites.Tree;
 
 namespace OptDsl.Visitors;
-
-public record CodeGenResult(string TargetFile, string PassPipeline);
 
 public class PipelineGeneratorVisitor : IAstVisitor
 {
     private readonly List<string> _passes = [];
-    private string? _targetId;
+    private string _targetId;
 
     public CodeGenResult Generate(AstElement root)
     {
@@ -40,23 +37,10 @@ public class PipelineGeneratorVisitor : IAstVisitor
 
     public void Visit(AstOptimizationStatement optimizationStatement)
     {
-        DataType dataType = optimizationStatement.Value.Match(
-            onInt: _ => DataType.Integer,
-            onBool: _ => DataType.Boolean
+        string pass = optimizationStatement.Value.Match(
+            onInt: i => $"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}={i}>",
+            onBool: _ => $"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}>"
         );
-
-        string valStr = optimizationStatement.Value.Match(
-            onInt: i => i.ToString(),
-            onBool: b => b.ToString().ToLower()
-        );
-
-        if (dataType == DataType.Integer)
-        {
-            _passes.Add($"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}={valStr}>");
-        }
-        else
-        {
-            _passes.Add($"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}>");
-        }
+        _passes.Add(pass);
     }
 }

@@ -1,4 +1,4 @@
-namespace OptDsl.Semantics;
+namespace OptDsl.Registry;
 
 public class SymbolTable
 {

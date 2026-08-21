@@ -1,6 +1,6 @@
 using OptDsl.Composites.Values;
 
-namespace OptDsl.Semantics;
+namespace OptDsl.Registry;
 
 public static class OptimizationRuleTable
 {

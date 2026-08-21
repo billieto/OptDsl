@@ -2,7 +2,7 @@ using OptDsl.Composites.Core;
 using OptDsl.Composites.Values;
 using OptDsl.Visitors;
 
-namespace OptDsl.Composites.Grammar;
+namespace OptDsl.Composites.Tree;
 
 public class AstOptimizationStatement(string optimization, string parameter, ParameterValue value) : AstLeaf("Optimization Statement")
 {

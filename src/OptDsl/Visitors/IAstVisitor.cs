@@ -1,4 +1,4 @@
-using OptDsl.Composites.Grammar;
+using OptDsl.Composites.Tree;
 
 namespace OptDsl.Visitors;
 
