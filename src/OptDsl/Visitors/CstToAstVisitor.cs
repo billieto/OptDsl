@@ -26,7 +26,7 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
 
     public override AstElement VisitOptimization_block([NotNull] OptDslParser.Optimization_blockContext context)
     {
-        AstOptimizationBlock astOptimizationBlock = new(context.ID().GetText());
+        AstOptimizationBlock astOptimizationBlock = new(context.STRING().GetText().Trim('"'));
 
         foreach (var stmtCtx in context.statement_list().statement())
         {

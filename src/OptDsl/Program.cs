@@ -1,5 +1,6 @@
 using Antlr4.Runtime;
 using OptDsl.Diagnostics;
+using OptDsl.Semantics;
 using OptDsl.Visitors;
 
 namespace OptDsl;
@@ -52,5 +53,22 @@ static class Program
 
         // Building the AST graph
         await GraphPrinterVisitor.SaveAsync(astRoot);
+
+        // Semantic Analysis
+        var semanticAnalyzer = new SemanticAnalyzerVisitor();
+        astRoot.Accept(semanticAnalyzer);
+        if (semanticAnalyzer.HasErrors)
+        {
+            Console.WriteLine(semanticAnalyzer.GetErrorMessage());
+            return;
+        }
+
+        // Code Generator
+        var pipelineGenerator = new PipelineGeneratorVisitor();
+        var pipelineRecord = pipelineGenerator.Generate(astRoot);
+        string targetId = pipelineRecord.TargetFile;
+        string passes = pipelineRecord.PassPipeline;
+
+        // Driver Invocation
     }
 }

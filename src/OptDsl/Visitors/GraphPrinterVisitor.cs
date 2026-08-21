@@ -21,7 +21,7 @@ public class GraphPrinterVisitor : IAstVisitor
 
     public void Visit(AstOptimizationBlock optimizationBlock)
     {
-        string label = $"{optimizationBlock.Name} ({optimizationBlock.TargetId})";
+        string label = $"{optimizationBlock.Name} ({optimizationBlock.TargetFile})";
         WriteNodeAndTraverse(label, optimizationBlock.Children);
     }
 

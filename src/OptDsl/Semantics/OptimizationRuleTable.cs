@@ -4,19 +4,17 @@ namespace OptDsl.Semantics;
 
 public static class OptimizationRuleTable
 {
-    private static readonly Dictionary<string, string> _acceptedParams = new()
+    private static readonly Dictionary<(string Opt, string Param), DataType> _ruleTable = new()
     {
-        {"inline", "threshold"},
+        {("inline", "threshold"), DataType.Integer},
     };
 
-    private static readonly Dictionary<string, DataType> _acceptedTypes = new()
-    {
-        {"threshold", DataType.Integer},
-    };
+    public static bool OptimizationExists(string opt)
+        => _ruleTable.Keys.Any(k => k.Opt == opt);
 
-    public static bool TryGetExpectedParam(string opt, out string? param)
-        => _acceptedParams.TryGetValue(opt, out param);
-        
-    public static bool TryGetExpectedType(string param, out DataType dataType)
-        => _acceptedTypes.TryGetValue(param, out dataType);
+    public static bool ParameterAccepted(string opt, string param)
+        => _ruleTable.ContainsKey((opt, param));
+
+    public static bool TryGetExpectedType(string opt, string param, out DataType expectedType)
+        => _ruleTable.TryGetValue((opt, param), out expectedType);
 }

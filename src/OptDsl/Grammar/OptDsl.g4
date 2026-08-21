@@ -7,18 +7,14 @@ translation_unit: optimization_block+ EOF;
 
 // List of statements
 optimization_block:
-	OPT ID OPEN_CBRKT statement_list CLOSE_CBRKT;
-
+	OPT STRING OPEN_CBRKT statement_list CLOSE_CBRKT;
 statement_list: statement+;
 statement: optimization_statement DELIMITER;
-
 optimization_statement: optimization parameter EQL value;
 
 // Rules for lexeme recognition 
 optimization: INLINE | FOLD | LOOP;
-
 parameter: THRESHOLD;
-
 value: INT | BOOL;
 
 // --- Lexer rules ---
@@ -28,7 +24,7 @@ DELIMITER: ';';
 OPEN_CBRKT: '{';
 CLOSE_CBRKT: '}';
 EQL: '=';
-COMMA: ','; // Maybe will not use
+// COMMA: ','; // Maybe will not use
 
 // Optimization keywords
 OPT: 'optimize';
@@ -40,6 +36,7 @@ LOOP: 'loop_unroll';
 THRESHOLD: 'threshold';
 
 // Basic lexemes
+STRING: '"' ~["\r\n]* '"';
 ID: [_A-Za-z][_A-Za-z0-9]*;
 INT: [0-9]+;
 BOOL: 'true' | 'false';
