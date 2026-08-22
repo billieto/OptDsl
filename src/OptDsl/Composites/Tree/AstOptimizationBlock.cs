@@ -3,7 +3,10 @@ using OptDsl.Visitors;
 
 namespace OptDsl.Composites.Tree;
 
-public class AstOptimizationBlock(string targetFile) : AstComposite("Optimization Block")
+public class AstOptimizationBlock(
+    string targetFile,
+    int lineNumber
+) : AstComposite("Optimization Block", lineNumber)
 {
     public string TargetFile { get; } = targetFile;
 

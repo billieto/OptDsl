@@ -13,8 +13,8 @@ statement: optimization_statement DELIMITER;
 optimization_statement: optimization parameter EQL value;
 
 // Rules for lexeme recognition 
-optimization: INLINE | FOLD | LOOP;
-parameter: THRESHOLD;
+optimization: INLINE | FOLD | LOOP | CFG;
+parameter: THRESHOLD | ITERATION;
 value: INT | BOOL;
 
 // --- Lexer rules ---
@@ -31,9 +31,11 @@ OPT: 'optimize';
 INLINE: 'inline';
 FOLD: 'constant_fold';
 LOOP: 'loop_unroll';
+CFG: 'simplifycfg';
 
 // Parameter keywords
 THRESHOLD: 'threshold';
+ITERATION: 'max_iterations';
 
 // Basic lexemes
 STRING: '"' ~["\r\n]* '"';

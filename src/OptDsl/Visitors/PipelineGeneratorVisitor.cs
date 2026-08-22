@@ -1,20 +1,20 @@
 using OptDsl.Composites.Core;
 using OptDsl.Composites.Tree;
+using OptDsl.Registry;
 
 namespace OptDsl.Visitors;
 
 public class PipelineGeneratorVisitor : IAstVisitor
 {
     private readonly List<string> _passes = [];
-    private string _targetId;
+    private string? _targetId;
 
     public CodeGenResult Generate(AstElement root)
     {
         root.Accept(this);
 
         string fullPipeline = string.Join(",", _passes);
-        return new CodeGenResult(_targetId, fullPipeline);
-        // TODO: If there is not Optimization Block what happens? (cant pass syntax, but have to check.)
+        return new CodeGenResult(_targetId!, fullPipeline);
     }
 
     public void Visit(AstTranslationUnit translationUnit)
@@ -37,10 +37,14 @@ public class PipelineGeneratorVisitor : IAstVisitor
 
     public void Visit(AstOptimizationStatement optimizationStatement)
     {
+        OptimizationRegistry.TryGetOptimization(optimizationStatement.Optimization, out var optDef);
+        optDef!.TryGetParameter(optimizationStatement.Parameter, out var paramDef);
+
         string pass = optimizationStatement.Value.Match(
-            onInt: i => $"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}={i}>",
-            onBool: _ => $"{optimizationStatement.Optimization}<{optimizationStatement.Parameter}>"
+            onInt: i => $"{optDef.LlvmPassName}<{paramDef!.LlvmParamName}={i}>",
+            onBool: _ => $"{optDef.LlvmPassName}<{paramDef!.LlvmParamName}>"
         );
+
         _passes.Add(pass);
     }
 }

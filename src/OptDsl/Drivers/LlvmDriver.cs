@@ -11,10 +11,13 @@ public static class LlvmDriver
         string optIr = $"{baseName}_opt.ll";
         string outputExecutable = $"{baseName}";
 
+        Console.WriteLine("Running clang to emit raw llvm ir...");
         Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
 
+        Console.WriteLine("Running opt to optimize the raw llvm ir bases on dsl's configurations...");
         Run("opt", $"-passes=\"{passes}\" \"{rawIr}\" -S -o \"{optIr}\"");
-
+        
+        Console.WriteLine("Running final clang to emit optimized executable...");
         Run("clang", $"\"{optIr}\" -o \"{outputExecutable}\" -lpthread -ldl -lm");
     }
 
@@ -35,6 +38,7 @@ public static class LlvmDriver
             StartInfo = procInfo,
         };
 
+        proc.Start();
         proc.WaitForExit();
 
         if (proc.ExitCode != 0)

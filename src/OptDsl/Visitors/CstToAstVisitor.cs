@@ -10,7 +10,7 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
 {
     public override AstElement VisitTranslation_unit([NotNull] OptDslParser.Translation_unitContext context)
     {
-        AstTranslationUnit astRoot = new();
+        AstTranslationUnit astRoot = new(context.Start.Line);
 
         foreach (var blockCtx in context.optimization_block())
         {
@@ -26,7 +26,7 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
 
     public override AstElement VisitOptimization_block([NotNull] OptDslParser.Optimization_blockContext context)
     {
-        AstOptimizationBlock astOptimizationBlock = new(context.STRING().GetText().Trim('"'));
+        AstOptimizationBlock astOptimizationBlock = new(context.STRING().GetText().Trim('"'), context.Start.Line);
 
         foreach (var stmtCtx in context.statement_list().statement())
         {
@@ -60,7 +60,7 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
             throw new UnreachableException();
         }
 
-        AstOptimizationStatement astOptimizationStatement = new(optName, paramName, paramValue);
+        AstOptimizationStatement astOptimizationStatement = new(optName, paramName, paramValue, context.Start.Line);
 
         return astOptimizationStatement;
     }

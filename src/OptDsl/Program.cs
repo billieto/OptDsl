@@ -1,5 +1,6 @@
 using Antlr4.Runtime;
 using OptDsl.Diagnostics;
+using OptDsl.Drivers;
 using OptDsl.Visitors;
 
 namespace OptDsl;
@@ -65,9 +66,16 @@ static class Program
         // Code Generator
         PipelineGeneratorVisitor pipelineGenerator = new();
         var pipelineRecord = pipelineGenerator.Generate(astRoot);
-        string targetId = pipelineRecord.TargetFile;
+
         string passes = pipelineRecord.PassPipeline;
+        if (passes.Equals(""))
+        {
+            return;
+        }
+
+        string targetId = pipelineRecord.TargetFile;
 
         // Driver Invocation
+        LlvmDriver.Execute(targetId, passes);
     }
 }

@@ -23,16 +23,20 @@ public class SemanticAnalyzerVisitor : IAstVisitor
     {
         string file = optimizationBlock.TargetFile;
 
-        // TODO: See if this check should be in the Semantic Analysis, maybe not.
         if (!File.Exists(file))
         {
-            _errorMessage.AppendLine($"Semantic Error: Target file \"{file}\" doesn't exist.");
+            _errorMessage.AppendLine(
+                $"[Line {optimizationBlock.LineNumber}] Semantic Error: Target file \"{file}\" doesn't exist."
+            );
             HasErrors = true;
         }
 
-        if (!_st.TryAddSymbol(file))
+        if (!_st.TryAddSymbol(file, optimizationBlock.LineNumber))
         {
-            _errorMessage.AppendLine($"Semantic Error: Target ID \"{file}\" is already declared.");
+            int line = _st.GetLineNumber(file);
+            _errorMessage.AppendLine(
+                $"[Line {optimizationBlock.LineNumber}] Semantic Error: Target ID \"{file}\" is already declared in Line {line}."
+            );
             HasErrors = true;
         }
 
@@ -47,7 +51,9 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         string optName = optimizationStatement.Optimization;
         if (!OptimizationRegistry.TryGetOptimization(optName, out var optDef))
         {
-            _errorMessage.AppendLine($"Semantic Error: Optimization \"{optName}\" doesn't exist.");
+            _errorMessage.AppendLine(
+                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{optName}\" doesn't exist."
+            );
             HasErrors = true;
             return;
         }
@@ -55,7 +61,9 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         string paramName = optimizationStatement.Parameter;
         if (!optDef.TryGetParameter(paramName, out var paramDef))
         {
-            _errorMessage.AppendLine($"Semantic Error: Optimization \"{optName}\" cant't have parameter \"{paramName}\".");
+            _errorMessage.AppendLine(
+                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{optName}\" cant't have parameter \"{paramName}\"."
+            );
             HasErrors = true;
             return;
         }
@@ -67,22 +75,11 @@ public class SemanticAnalyzerVisitor : IAstVisitor
 
         if (dataType != paramDef.ExpectedType)
         {
-            _errorMessage.AppendLine($"Semantic Error: Parameter \"{paramName}\" can't have value of type \"{dataType}\".");
+            _errorMessage.AppendLine(
+                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Parameter \"{paramName}\" can't have value of type \"{dataType}\"."
+            );
             HasErrors = true;
         }
-
-        // if (!OptimizationRuleTable.OptimizationExists(opt))
-        // {
-        //    
-        // }
-        // else if (!OptimizationRuleTable.ParameterAccepted(opt, param))
-        // {
-        //     
-        // }
-        // else if (!OptimizationRuleTable.TryGetExpectedType(opt, param, out DataType expectedType) && expectedType != dataType)
-        // {
-        //     
-        // }
     }
 
     public string GetErrorMessage()

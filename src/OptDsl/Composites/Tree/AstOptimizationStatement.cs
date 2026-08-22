@@ -4,7 +4,12 @@ using OptDsl.Visitors;
 
 namespace OptDsl.Composites.Tree;
 
-public class AstOptimizationStatement(string optimization, string parameter, ParameterValue value) : AstLeaf("Optimization Statement")
+public class AstOptimizationStatement(
+    string optimization,
+    string parameter,
+    ParameterValue value,
+    int lineNumber
+) : AstLeaf("Optimization Statement", lineNumber)
 {
     public string Optimization { get; } = optimization;
     public string Parameter { get; } = parameter;
