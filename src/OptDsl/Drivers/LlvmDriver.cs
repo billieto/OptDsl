@@ -1,27 +1,49 @@
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace OptDsl.Drivers;
 
 public static class LlvmDriver
 {
-    public static void Execute(string targetFile, string passes)
+    public static bool Execute(string targetFile, string passes)
     {
         string baseName = Path.GetFileNameWithoutExtension(targetFile);
-        string rawIr = $"{baseName}.ll";
-        string optIr = $"{baseName}_opt.ll";
-        string outputExecutable = $"{baseName}";
+        string rawIr = $"samples/{baseName}.ll";
+        string optIr = $"samples/{baseName}_opt.ll";
+        string outputExecutable = $"samples/{baseName}";
+
+        bool hasFailed = false;
 
         Console.WriteLine("Running clang to emit raw llvm ir...");
-        Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
+        hasFailed =
+            Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
+        if (hasFailed)
+        {
+            return true;
+        }
 
         Console.WriteLine("Running opt to optimize the raw llvm ir bases on dsl's configurations...");
-        Run("opt", $"-passes=\"{passes}\" \"{rawIr}\" -S -o \"{optIr}\"");
-        
+        hasFailed =
+            Run("opt", $"-passes=\"{passes}\" \"{rawIr}\" -S -o \"{optIr}\"");
+        if (hasFailed)
+        {
+            return true;
+        }
+
         Console.WriteLine("Running final clang to emit optimized executable...");
-        Run("clang", $"\"{optIr}\" -o \"{outputExecutable}\" -lpthread -ldl -lm");
+        hasFailed =
+            Run("clang", $"\"{optIr}\" -o \"{outputExecutable}\" -lpthread -ldl -lm");
+        if (hasFailed)
+        {
+            return true;
+        }
+
+        Console.WriteLine("Finished!");
+
+        return false;
     }
 
-    private static void Run(string cmd, string args)
+    private static bool Run(string cmd, string args)
     {
         ProcessStartInfo procInfo = new()
         {
@@ -44,7 +66,10 @@ public static class LlvmDriver
         if (proc.ExitCode != 0)
         {
             string err = proc.StandardError.ReadToEnd();
-            throw new Exception($"Command '{cmd} {args}' failed with error:\n{err}");
+            Console.WriteLine($"Command '{cmd} {args}' failed with error:\n{err}");
+            return true;
         }
+
+        return false;
     }
 }

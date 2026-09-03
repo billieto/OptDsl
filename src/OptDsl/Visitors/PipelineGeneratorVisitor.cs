@@ -4,47 +4,79 @@ using OptDsl.Registry;
 
 namespace OptDsl.Visitors;
 
-public class PipelineGeneratorVisitor : IAstVisitor
+public class PipelineGeneratorVisitor : IAstVisitor<string>
 {
-    private readonly List<string> _passes = [];
     private string? _targetId;
+    private OptimizationDefinition? _optDef = null;
 
     public CodeGenResult Generate(AstElement root)
     {
-        root.Accept(this);
-
-        string fullPipeline = string.Join(",", _passes);
+        string fullPipeline = root.Accept(this);
         return new CodeGenResult(_targetId!, fullPipeline);
     }
 
-    public void Visit(AstTranslationUnit translationUnit)
+    public string Visit(AstTranslationUnit translationUnit)
     {
+        List<string> blocks = [];
         foreach (var child in translationUnit.Children)
         {
-            child.Accept(this);
+            blocks.Add(child.Accept(this));
         }
+        return string.Join(",", blocks);
     }
 
-    public void Visit(AstOptimizationBlock optimizationBlock)
+    public string Visit(AstOptimizationBlock optimizationBlock)
     {
         _targetId = optimizationBlock.TargetFile;
 
+        List<string> stmtList = [];
         foreach (var child in optimizationBlock.Children)
         {
-            child.Accept(this);
+            stmtList.Add(child.Accept(this));
         }
+        return string.Join(",", stmtList);
     }
 
-    public void Visit(AstOptimizationStatement optimizationStatement)
+    public string Visit(AstScopeBlock scopeBlock)
     {
-        OptimizationRegistry.TryGetOptimization(optimizationStatement.Optimization, out var optDef);
-        optDef!.TryGetParameter(optimizationStatement.Parameter, out var paramDef);
+        List<string> stmtList = [];
+        foreach (var child in scopeBlock.Children)
+        {
+            stmtList.Add(child.Accept(this));
+        }
+        return $"{scopeBlock.ScopeName}({string.Join(",", stmtList)})";
+    }
 
-        string pass = optimizationStatement.Value.Match(
-            onInt: i => $"{optDef.LlvmPassName}<{paramDef!.LlvmParamName}={i}>",
-            onBool: _ => $"{optDef.LlvmPassName}<{paramDef!.LlvmParamName}>"
+    public string Visit(AstOptimizationStatement optimizationStatement)
+    {
+        OptimizationRegistry.TryGetOptimization(optimizationStatement.OptimizationName, out var optDef);
+
+        List<string> paramList = [];
+        _optDef = optDef;
+        foreach (var param in optimizationStatement.Children)
+        {
+            string paramStr = param.Accept(this);
+            if (!string.IsNullOrEmpty(paramStr))
+            {
+                paramList.Add(paramStr);
+            }
+        }
+        _optDef = null;
+
+        if (paramList.Count == 0)
+        {
+            return optDef.LlvmPassName;
+        }
+
+        return $"{optDef.LlvmPassName}<{string.Join(";", paramList)}>";
+    }
+
+    public string Visit(AstParameterStatement parameterStatement)
+    {
+        _optDef!.TryGetParameter(parameterStatement.ParameterName, out var paramDef);
+        return parameterStatement.Value.Match(
+            onInt: i => $"{paramDef.LlvmParamName}={i}",
+            onBool: b => b ? $"{paramDef.LlvmParamName}" : ""
         );
-
-        _passes.Add(pass);
     }
 }

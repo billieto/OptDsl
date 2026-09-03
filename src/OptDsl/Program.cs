@@ -68,7 +68,7 @@ static class Program
         var pipelineRecord = pipelineGenerator.Generate(astRoot);
 
         string passes = pipelineRecord.PassPipeline;
-        if (passes.Equals(""))
+        if (string.IsNullOrEmpty(passes))
         {
             return;
         }
@@ -76,6 +76,11 @@ static class Program
         string targetId = pipelineRecord.TargetFile;
 
         // Driver Invocation
-        LlvmDriver.Execute(targetId, passes);
+        var failed = LlvmDriver.Execute(targetId, passes);
+        if (failed)
+        {
+            Console.WriteLine("Compilation failed due to toolchain errors.");
+            return;
+        }
     }
 }

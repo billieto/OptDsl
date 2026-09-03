@@ -9,7 +9,9 @@ public class SemanticAnalyzerVisitor : IAstVisitor
 {
     private readonly SymbolTable _st = new();
     private readonly StringBuilder _errorMessage = new();
-    public bool HasErrors { get; private set; } = false;
+    private OptimizationDefinition? _optDef = null;
+    private string? _optName = null;
+    public bool HasErrors => _errorMessage.Length > 0;
 
     public void Visit(AstTranslationUnit translationUnit)
     {
@@ -28,7 +30,6 @@ public class SemanticAnalyzerVisitor : IAstVisitor
             _errorMessage.AppendLine(
                 $"[Line {optimizationBlock.LineNumber}] Semantic Error: Target file \"{file}\" doesn't exist."
             );
-            HasErrors = true;
         }
 
         if (!_st.TryAddSymbol(file, optimizationBlock.LineNumber))
@@ -37,7 +38,6 @@ public class SemanticAnalyzerVisitor : IAstVisitor
             _errorMessage.AppendLine(
                 $"[Line {optimizationBlock.LineNumber}] Semantic Error: Target ID \"{file}\" is already declared in Line {line}."
             );
-            HasErrors = true;
         }
 
         foreach (var child in optimizationBlock.Children)
@@ -46,29 +46,47 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         }
     }
 
+    // TODO: Need to make the semantic analysis for this, witch passes are belonging to the scope.
+    public void Visit(AstScopeBlock scopeBlock)
+    {
+        foreach (var child in scopeBlock.Children)
+        {
+            child.Accept(this);
+        }
+    }
+
     public void Visit(AstOptimizationStatement optimizationStatement)
     {
-        string optName = optimizationStatement.Optimization;
-        if (!OptimizationRegistry.TryGetOptimization(optName, out var optDef))
+        _optName = optimizationStatement.OptimizationName;
+        if (!OptimizationRegistry.TryGetOptimization(_optName, out _optDef))
         {
             _errorMessage.AppendLine(
-                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{optName}\" doesn't exist."
+                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{_optName}\" doesn't exist."
             );
-            HasErrors = true;
             return;
         }
 
-        string paramName = optimizationStatement.Parameter;
-        if (!optDef.TryGetParameter(paramName, out var paramDef))
+        foreach (var child in optimizationStatement.Children)
+        {
+            child.Accept(this);
+        }
+
+        _optName = string.Empty;
+        _optDef = null;
+    }
+
+    public void Visit(AstParameterStatement parameterStatement)
+    {
+        string paramName = parameterStatement.ParameterName;
+        if (!_optDef!.TryGetParameter(paramName, out var paramDef))
         {
             _errorMessage.AppendLine(
-                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{optName}\" cant't have parameter \"{paramName}\"."
+                $"[Line {parameterStatement.LineNumber}] Semantic Error: Optimization \"{_optName}\" can't have parameter \"{paramName}\"."
             );
-            HasErrors = true;
             return;
         }
 
-        DataType dataType = optimizationStatement.Value.Match(
+        DataType dataType = parameterStatement.Value.Match(
             onInt: _ => DataType.Integer,
             onBool: _ => DataType.Boolean
         );
@@ -76,14 +94,10 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         if (dataType != paramDef.ExpectedType)
         {
             _errorMessage.AppendLine(
-                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Parameter \"{paramName}\" can't have value of type \"{dataType}\"."
+                $"[Line {parameterStatement.LineNumber}] Semantic Error: Parameter \"{paramName}\" can't have value of type \"{dataType}\"."
             );
-            HasErrors = true;
         }
     }
 
-    public string GetErrorMessage()
-    {
-        return _errorMessage.ToString();
-    }
+    public string GetErrorMessage() => _errorMessage.ToString();
 }

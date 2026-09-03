@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq.Expressions;
 using Antlr4.Runtime.Misc;
 using OptDsl.Composites.Core;
 using OptDsl.Composites.Tree;
@@ -26,11 +27,14 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
 
     public override AstElement VisitOptimization_block([NotNull] OptDslParser.Optimization_blockContext context)
     {
-        AstOptimizationBlock astOptimizationBlock = new(context.STRING().GetText().Trim('"'), context.Start.Line);
+        AstOptimizationBlock astOptimizationBlock = new(
+            context.Start.Line,
+            context.STRING().GetText().Trim('"')
+        );
 
-        foreach (var stmtCtx in context.statement_list().statement())
+        foreach (var stmtCtx in context.statement())
         {
-            var childNode = Visit(stmtCtx.optimization_statement());
+            var childNode = Visit(stmtCtx);
             if (childNode != null)
             {
                 astOptimizationBlock.AddChild(childNode);
@@ -40,28 +44,54 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
         return astOptimizationBlock;
     }
 
-    public override AstElement VisitOptimization_statement([NotNull] OptDslParser.Optimization_statementContext context)
+    public override AstElement VisitScopeBlock([NotNull] OptDslParser.ScopeBlockContext context)
     {
-        string optName = context.optimization().GetText();
-        string paramName = context.parameter().GetText();
-        ParameterValue paramValue;
+        AstScopeBlock astScopeBlock = new(
+            context.Start.Line,
+            context.scope().GetText()
+        );
 
-        var valueCtx = context.value();
-        if (valueCtx.INT() != null)
+        foreach (var stmtCtx in context.statement())
         {
-            paramValue = int.Parse(valueCtx.INT().GetText());
-        }
-        else if (valueCtx.BOOL() != null)
-        {
-            paramValue = bool.Parse(valueCtx.BOOL().GetText());
-        }
-        else
-        {
-            throw new UnreachableException();
+            var childNode = Visit(stmtCtx);
+            if (childNode != null)
+            {
+                astScopeBlock.AddChild(childNode);
+            }
         }
 
-        AstOptimizationStatement astOptimizationStatement = new(optName, paramName, paramValue, context.Start.Line);
+        return astScopeBlock;
+    }
+
+    public override AstElement VisitOptimizationStatement([NotNull] OptDslParser.OptimizationStatementContext context)
+    {
+        string optName = context.ID().GetText();
+        var paramList = context.parameter_list();
+
+        AstOptimizationStatement astOptimizationStatement = new(
+            context.Start.Line,
+            optName
+        );
+
+        if (paramList != null)
+        {
+            foreach (var param in paramList.param_assignment())
+            {
+                var node = Visit(param);
+                astOptimizationStatement.AddChild(node);
+            }
+        }
 
         return astOptimizationStatement;
+    }
+
+    public override AstElement VisitParam_assignment([NotNull] OptDslParser.Param_assignmentContext context)
+    {
+        string paramName = context.ID().GetText();
+        ParameterValue value = context.value().INT() != null
+            ? new ParameterValue(int.Parse(context.value().INT().GetText()))
+            : new ParameterValue(bool.Parse(context.value().BOOL().GetText()));
+
+        return new AstParameterStatement(context.Start.Line, paramName, value);
     }
 }

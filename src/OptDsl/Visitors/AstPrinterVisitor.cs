@@ -14,26 +14,33 @@ public class AstPrinterVisitor : IAstVisitor
 
     public void Visit(AstTranslationUnit translationUnit)
     {
-        Directory.CreateDirectory("debug");
-
-        WriteNodeAndTraverse(translationUnit.Name, translationUnit.Children);
+        WriteNodeAndTraverse(translationUnit.NodeName, translationUnit.Children);
     }
 
     public void Visit(AstOptimizationBlock optimizationBlock)
     {
-        string label = $"{optimizationBlock.Name} ({optimizationBlock.TargetFile})";
+        string label = $"{optimizationBlock.NodeName} ({optimizationBlock.TargetFile})";
         WriteNodeAndTraverse(label, optimizationBlock.Children);
+    }
+
+    public void Visit(AstScopeBlock scopeBlock)
+    {
+        string label = $"{scopeBlock.NodeName} with {scopeBlock.ScopeName} scope";
+        WriteNodeAndTraverse(label, scopeBlock.Children);
     }
 
     public void Visit(AstOptimizationStatement optimizationStatement)
     {
-        string valString = optimizationStatement.Value.Match(
+        WriteNodeAndTraverse(optimizationStatement.NodeName, optimizationStatement.Children);
+    }
+
+    public void Visit(AstParameterStatement parameterStatement)
+    {
+        string val = parameterStatement.Value.Match(
             onInt: i => i.ToString(),
             onBool: b => b.ToString().ToLower()
         );
-
-        string label = $"{optimizationStatement.Optimization} {optimizationStatement.Parameter} = {valString}";
-
+        string label = $"{parameterStatement.NodeName}\n{parameterStatement.ParameterName} = {val}";
         WriteNodeAndTraverse(label, []);
     }
 
@@ -73,8 +80,8 @@ public class AstPrinterVisitor : IAstVisitor
         root.Accept(visitor);
 
         Directory.CreateDirectory("debug");
-        await using StreamWriter writer = new ("debug/AST.dot");
-        CompilationContext ctx = new (writer, new CompilationOptions());
+        await using StreamWriter writer = new("debug/AST.dot");
+        CompilationContext ctx = new(writer, new CompilationOptions());
         await visitor._graph.CompileAsync(ctx);
     }
 }

@@ -1,9 +1,9 @@
 namespace OptDsl.Composites.Core;
 
 public abstract class AstComposite(
-    string name,
+    string nodeName,
     int lineNumber
-) : AstElement(name, lineNumber)
+) : AstElement(nodeName, lineNumber)
 {
     private readonly List<AstElement> _children = [];
     public IReadOnlyList<AstElement> Children => _children;

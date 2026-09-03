@@ -1,6 +1,6 @@
 namespace OptDsl.Composites.Core;
 
 public abstract class AstLeaf(
-    string name,
+    string nodeName,
     int lineNumber
-) : AstElement(name, lineNumber);
+) : AstElement(nodeName, lineNumber);
