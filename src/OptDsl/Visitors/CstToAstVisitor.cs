@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Linq.Expressions;
 using Antlr4.Runtime.Misc;
 using OptDsl.Composites.Core;
 using OptDsl.Composites.Tree;
@@ -88,9 +86,11 @@ public class CstToAstVisitor : OptDslBaseVisitor<AstElement>
     public override AstElement VisitParam_assignment([NotNull] OptDslParser.Param_assignmentContext context)
     {
         string paramName = context.ID().GetText();
-        ParameterValue value = context.value().INT() != null
-            ? new ParameterValue(int.Parse(context.value().INT().GetText()))
-            : new ParameterValue(bool.Parse(context.value().BOOL().GetText()));
+        
+        string valText = context.value().GetText();
+        ParameterValue value = int.TryParse(valText, out int intVal)
+            ? new ParameterValue(intVal)
+            : new ParameterValue(bool.Parse(valText));
 
         return new AstParameterStatement(context.Start.Line, paramName, value);
     }

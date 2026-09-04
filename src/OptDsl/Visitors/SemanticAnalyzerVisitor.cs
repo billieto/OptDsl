@@ -11,6 +11,7 @@ public class SemanticAnalyzerVisitor : IAstVisitor
     private readonly StringBuilder _errorMessage = new();
     private OptimizationDefinition? _optDef = null;
     private string? _optName = null;
+    private readonly Stack<PassScopes> _scopeStack = [];
     public bool HasErrors => _errorMessage.Length > 0;
 
     public void Visit(AstTranslationUnit translationUnit)
@@ -46,13 +47,15 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         }
     }
 
-    // TODO: Need to make the semantic analysis for this, witch passes are belonging to the scope.
     public void Visit(AstScopeBlock scopeBlock)
     {
+        Enum.TryParse<PassScopes>(scopeBlock.ScopeName, true, out var scopeFlag);
+        _scopeStack.Push(scopeFlag);
         foreach (var child in scopeBlock.Children)
         {
             child.Accept(this);
         }
+        _scopeStack.Pop();
     }
 
     public void Visit(AstOptimizationStatement optimizationStatement)
@@ -64,6 +67,13 @@ public class SemanticAnalyzerVisitor : IAstVisitor
                 $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{_optName}\" doesn't exist."
             );
             return;
+        }
+
+        if (_scopeStack.Count > 0 && !_optDef.PassScopes.HasFlag(_scopeStack.Peek()))
+        {
+            _errorMessage.AppendLine(
+                $"[Line {optimizationStatement.LineNumber}] Semantic Error: Optimization \"{_optName}\" can't be in the scope \"{_scopeStack.Peek()}\" (allowed in {_optDef.PassScopes})."
+            );
         }
 
         foreach (var child in optimizationStatement.Children)

@@ -9,7 +9,7 @@ public class AstScopeBlock(
 ) : AstComposite("Scope Block", lineNumber)
 {
     public string ScopeName { get; } = scopeName;
-
+ 
     public override void Accept(IAstVisitor visitor) => visitor.Visit(this);
     public override T Accept<T>(IAstVisitor<T> visitor) => visitor.Visit(this);
 }

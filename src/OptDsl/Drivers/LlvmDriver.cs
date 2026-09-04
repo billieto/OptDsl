@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.Serialization;
 
 namespace OptDsl.Drivers;
 
@@ -11,12 +10,11 @@ public static class LlvmDriver
         string rawIr = $"samples/{baseName}.ll";
         string optIr = $"samples/{baseName}_opt.ll";
         string outputExecutable = $"samples/{baseName}";
-
-        bool hasFailed = false;
-
+        
         Console.WriteLine("Running clang to emit raw llvm ir...");
-        hasFailed =
-            Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
+
+        bool hasFailed =
+    Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
         if (hasFailed)
         {
             return true;
