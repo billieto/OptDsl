@@ -9,6 +9,11 @@ public class PipelineGeneratorVisitor : IAstVisitor<string>
     private string? _targetId;
     private OptimizationDefinition? _optDef = null;
 
+    /// <summary>
+    /// Generates the pass pipeline string to be given on the `opt` command.
+    /// </summary>
+    /// <param name="root">The root of the AST.</param>
+    /// <returns>A <see cref="CodeGenResult"/> that holds the file to apply the pipeline and the pipeline itself.</returns>
     public CodeGenResult Generate(AstElement root)
     {
         string fullPipeline = root.Accept(this);
@@ -65,18 +70,18 @@ public class PipelineGeneratorVisitor : IAstVisitor<string>
 
         if (paramList.Count == 0)
         {
-            return optDef.LlvmPassName;
+            return optDef!.LlvmPassName;
         }
 
-        return $"{optDef.LlvmPassName}<{string.Join(";", paramList)}>";
+        return $"{optDef!.LlvmPassName}<{string.Join(";", paramList)}>";
     }
 
     public string Visit(AstParameterStatement parameterStatement)
     {
         _optDef!.TryGetParameter(parameterStatement.ParameterName, out var paramDef);
         return parameterStatement.Value.Match(
-            onInt: i => $"{paramDef.LlvmParamName}={i}",
-            onBool: b => b ? $"{paramDef.LlvmParamName}" : ""
+            onInt: i => $"{paramDef!.LlvmParamName}={i}",
+            onBool: b => b ? $"{paramDef!.LlvmParamName}" : ""
         );
     }
 }

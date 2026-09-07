@@ -22,6 +22,15 @@ public readonly struct ParameterValue
         _boolValue = value;
     }
 
+    /// <summary>
+    /// Pattern-matches on the stored value's type and executes the corresponding delegate.
+    /// This avoids messy null checks and flag fields by having the caller provide
+    /// 2 functions, or lambdas, to be executed at runtime based on
+    /// the value assigned in the parameter in the DSL.
+    /// </summary>
+    /// <param name="onInt">A function, or a lambda, to be executed if the type of the value stored is <see langword="int"/>.</param>
+    /// <param name="onBool">A function, or a lambda, to be executed if the type of the value stored is <see langword="bool"/>.</param>
+    /// <returns>The result produced by the matching delegate of type <typeparamref name="TResult"/>.</returns>
     public TResult Match<TResult>(Func<int, TResult> onInt, Func<bool, TResult> onBool)
     {
         return _type switch

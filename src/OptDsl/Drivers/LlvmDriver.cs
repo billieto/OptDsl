@@ -4,17 +4,22 @@ namespace OptDsl.Drivers;
 
 public static class LlvmDriver
 {
+    /// <summary>
+    /// Starts the process of compiling, optimizing and linking the files given by the user in the DSL.
+    /// </summary>
+    /// <param name="targetFile">The file to apply the passes.</param>
+    /// <param name="passes">The string with the pipeline of passes.</param>
+    /// <returns>`true` on success, `false` otherwise</returns>
     public static bool Execute(string targetFile, string passes)
     {
         string baseName = Path.GetFileNameWithoutExtension(targetFile);
         string rawIr = $"samples/{baseName}.ll";
         string optIr = $"samples/{baseName}_opt.ll";
         string outputExecutable = $"samples/{baseName}";
-        
-        Console.WriteLine("Running clang to emit raw llvm ir...");
 
+        Console.WriteLine("Running clang to emit raw llvm ir...");
         bool hasFailed =
-    Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
+            Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
         if (hasFailed)
         {
             return true;

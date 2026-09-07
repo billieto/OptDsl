@@ -74,6 +74,11 @@ public class AstPrinterVisitor : IAstVisitor
         _parentStack.Pop();
     }
 
+    /// <summary>
+    /// Exports the graph of the AST into a <c>.dot</c> file at <c>debug/AST.dot</c>.
+    /// </summary>
+    /// <param name="root">The root element of the AST to visualize.</param>
+    /// <returns>A task representing the asynchronous export operation.</returns>
     public static async Task SaveAsync(AstElement root)
     {
         AstPrinterVisitor visitor = new();

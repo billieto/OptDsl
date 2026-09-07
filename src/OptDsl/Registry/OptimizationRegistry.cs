@@ -88,6 +88,12 @@ public static class OptimizationRegistry
         { "interprocedural_sccp", new OptimizationDefinition("ipsccp", PassScopes.Module) }
     };
 
+    /// <summary>
+    /// Tries to get the `OptimizationDefinition` based on the optimization name given.
+    /// </summary>
+    /// <param name="optName">The name of the optimization to try and get its definition.</param>
+    /// <param name="optimization">An `out` parameter to store the optimization, if the optimization is present.</param>
+    /// <returns><see langword="true"/> if the optimization name is valid, otherwise <see langword="false"/>.</returns>
     public static bool TryGetOptimization(
         string optName,
         [NotNullWhen(true)] out OptimizationDefinition? optimization

@@ -109,5 +109,9 @@ public class SemanticAnalyzerVisitor : IAstVisitor
         }
     }
 
+    /// <summary>
+    /// Returns the errors that happened during the semantic analysis.
+    /// </summary>
+    /// <returns>A string with the errors found.</returns>
     public string GetErrorMessage() => _errorMessage.ToString();
 }

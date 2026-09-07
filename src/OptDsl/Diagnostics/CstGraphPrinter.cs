@@ -10,6 +10,10 @@ public class CstGraphPrinter(IParseTree tree)
     private int _counter = 0;
     private readonly DotGraph _graph = new DotGraph().Directed().WithIdentifier("CST");
 
+    /// <summary>
+    /// Exports the graph of the CST produced by ANTLR4 into a <c>.dot</c> file at <c>debug/CST.dot</c>.
+    /// </summary>
+    /// <returns>A task representing the asynchronous export operation.</returns>
     public async Task Export()
     {
         Directory.CreateDirectory("debug");
