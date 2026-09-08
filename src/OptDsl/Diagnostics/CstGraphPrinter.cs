@@ -5,7 +5,7 @@ using DotNetGraph.Extensions;
 
 namespace OptDsl.Diagnostics;
 
-public class CstGraphPrinter(IParseTree tree)
+public class CstGraphPrinter
 {
     private int _counter = 0;
     private readonly DotGraph _graph = new DotGraph().Directed().WithIdentifier("CST");
@@ -13,8 +13,9 @@ public class CstGraphPrinter(IParseTree tree)
     /// <summary>
     /// Exports the graph of the CST produced by ANTLR4 into a <c>.dot</c> file at <c>debug/CST.dot</c>.
     /// </summary>
+    /// <param name="tree">The root of the ANTLR4 parse tree to export.</param>
     /// <returns>A task representing the asynchronous export operation.</returns>
-    public async Task Export()
+    public async Task Export(IParseTree tree)
     {
         Directory.CreateDirectory("debug");
 

@@ -44,39 +44,38 @@ static class Program
         Console.WriteLine(cstRoot.ToStringTree(parser));
 
         // Building the CST graph
-        CstGraphPrinter cgp = new(cstRoot);
-        await cgp.Export();
+        CstGraphPrinter cgp = new();
+        await cgp.Export(cstRoot);
 
         // Building the AST
         CstToAstVisitor cstToAstVisitor = new();
         var astRoot = cstToAstVisitor.Visit(cstRoot);
 
         // Building the AST graph
-        await AstPrinterVisitor.SaveAsync(astRoot);
+        AstPrinterVisitor astPrinter = new();
+        await astPrinter.SaveAsync(astRoot);
 
         // Semantic Analysis
         SemanticAnalyzerVisitor semanticAnalyzer = new();
-        astRoot.Accept(semanticAnalyzer);
-        if (semanticAnalyzer.HasErrors)
+        string? errors = semanticAnalyzer.Analyze(astRoot);
+        if (errors != null)
         {
-            Console.WriteLine(semanticAnalyzer.GetErrorMessage());
+            Console.WriteLine(errors);
             return;
         }
 
         // Code Generator
         PipelineGeneratorVisitor pipelineGenerator = new();
-        var pipelineRecord = pipelineGenerator.Generate(astRoot);
+        var targetConfigs = pipelineGenerator.Generate(astRoot);
 
-        string passes = pipelineRecord.PassPipeline;
-        if (string.IsNullOrEmpty(passes))
+        if (targetConfigs.Count == 0)
         {
             return;
         }
 
-        string targetId = pipelineRecord.TargetFile;
-
         // Driver Invocation
-        var failed = LlvmDriver.Execute(targetId, passes);
+        LlvmDriver driver = new();
+        bool failed = driver.Execute(targetConfigs);
         if (failed)
         {
             Console.WriteLine("Compilation failed due to toolchain errors.");

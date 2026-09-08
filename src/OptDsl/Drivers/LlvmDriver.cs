@@ -1,25 +1,40 @@
 using System.Diagnostics;
+using System.Text;
+using OptDsl.Visitors;
 
 namespace OptDsl.Drivers;
 
-public static class LlvmDriver
+public class LlvmDriver
 {
-    /// <summary>
-    /// Starts the process of compiling, optimizing and linking the files given by the user in the DSL.
-    /// </summary>
-    /// <param name="targetFile">The file to apply the passes.</param>
-    /// <param name="passes">The string with the pipeline of passes.</param>
-    /// <returns>`true` on success, `false` otherwise</returns>
-    public static bool Execute(string targetFile, string passes)
+    public bool Execute(IReadOnlyList<TargetConfig> targetConfigs)
     {
-        string baseName = Path.GetFileNameWithoutExtension(targetFile);
+        StringBuilder sb = new();
+        string outputFile = "samples/a.out";
+
+        foreach (var config in targetConfigs)
+        {
+            bool hasError = ExecuteFile(config);
+            if (hasError)
+            {
+                return true;
+            }
+            string baseName = Path.GetFileNameWithoutExtension(config.TargetFile);
+            sb.Append($"samples/{baseName}_opt.ll ");
+        }
+        Console.WriteLine("Running final clang to link all the optimized IR's to one optimized executable...");
+
+        return Run("clang", $"{sb} -o \"{outputFile}\" -lpthread -ldl -lm");
+    }
+
+    private bool ExecuteFile(TargetConfig config)
+    {
+        string baseName = Path.GetFileNameWithoutExtension(config.TargetFile);
         string rawIr = $"samples/{baseName}.ll";
         string optIr = $"samples/{baseName}_opt.ll";
-        string outputExecutable = $"samples/{baseName}";
 
         Console.WriteLine("Running clang to emit raw llvm ir...");
         bool hasFailed =
-            Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{targetFile}\" -o \"{rawIr}\"");
+            Run("clang", $"-S -emit-llvm -O0 -Xclang -disable-O0-optnone -DNDEBUG \"{config.TargetFile}\" -o \"{rawIr}\"");
         if (hasFailed)
         {
             return true;
@@ -27,26 +42,18 @@ public static class LlvmDriver
 
         Console.WriteLine("Running opt to optimize the raw llvm ir bases on dsl's configurations...");
         hasFailed =
-            Run("opt", $"-passes=\"{passes}\" \"{rawIr}\" -S -o \"{optIr}\"");
+            Run("opt", $"-passes=\"{config.PassPipeline}\" \"{rawIr}\" -S -o \"{optIr}\"");
         if (hasFailed)
         {
             return true;
         }
 
-        Console.WriteLine("Running final clang to emit optimized executable...");
-        hasFailed =
-            Run("clang", $"\"{optIr}\" -o \"{outputExecutable}\" -lpthread -ldl -lm");
-        if (hasFailed)
-        {
-            return true;
-        }
-
-        Console.WriteLine("Finished!");
+        Console.WriteLine($"Finished optimizing file \"{config.TargetFile}\"");
 
         return false;
     }
 
-    private static bool Run(string cmd, string args)
+    private bool Run(string cmd, string args)
     {
         ProcessStartInfo procInfo = new()
         {

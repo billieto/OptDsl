@@ -1,9 +1,17 @@
-optimize    "samples/foo.c"    {
-    memory_to_register  ;
+optimize "samples/foo.c" {
+    memory_to_register;
+    loop_unroll max_iterations = 4;
     
-    loop_unroll     max_iterations  =   4  ;
+    constant_fold max_iterations = 1;
     
-    constant_fold max_iterations =    1 ;
+    simplifycfg threshold = 13,switch_to_lookup = true;
+}
+
+optimize "samples/bar.c" {
+    memory_to_register;
+    loop_unroll max_iterations = 4;
     
-    simplifycfg    threshold = 13  ,    switch_to_lookup   =     true    ;
+    constant_fold max_iterations = 1;
+    
+    simplifycfg threshold = 13,switch_to_lookup = true;
 }

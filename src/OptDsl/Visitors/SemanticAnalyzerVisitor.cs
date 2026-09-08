@@ -1,4 +1,5 @@
 using System.Text;
+using OptDsl.Composites.Core;
 using OptDsl.Composites.Tree;
 using OptDsl.Composites.Values;
 using OptDsl.Registry;
@@ -12,7 +13,7 @@ public class SemanticAnalyzerVisitor : IAstVisitor
     private OptimizationDefinition? _optDef = null;
     private string? _optName = null;
     private readonly Stack<PassScopes> _scopeStack = [];
-    public bool HasErrors => _errorMessage.Length > 0;
+    private bool HasErrors => _errorMessage.Length > 0;
 
     public void Visit(AstTranslationUnit translationUnit)
     {
@@ -110,8 +111,13 @@ public class SemanticAnalyzerVisitor : IAstVisitor
     }
 
     /// <summary>
-    /// Returns the errors that happened during the semantic analysis.
+    /// Performs semantic analysis on the AST and returns any errors found.
     /// </summary>
-    /// <returns>A string with the errors found.</returns>
-    public string GetErrorMessage() => _errorMessage.ToString();
+    /// <param name="root">The root element of the AST to analyze.</param>
+    /// <returns>A string with the errors found, or <see langword="null"/> if no errors were found.</returns>
+    public string? Analyze(AstElement root)
+    {
+        root.Accept(this);
+        return _errorMessage.Length > 0 ? _errorMessage.ToString() : null;
+    }
 }

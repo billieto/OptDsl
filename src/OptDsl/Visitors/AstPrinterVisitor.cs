@@ -79,14 +79,13 @@ public class AstPrinterVisitor : IAstVisitor
     /// </summary>
     /// <param name="root">The root element of the AST to visualize.</param>
     /// <returns>A task representing the asynchronous export operation.</returns>
-    public static async Task SaveAsync(AstElement root)
+    public async Task SaveAsync(AstElement root)
     {
-        AstPrinterVisitor visitor = new();
-        root.Accept(visitor);
+        root.Accept(this);
 
         Directory.CreateDirectory("debug");
         await using StreamWriter writer = new("debug/AST.dot");
         CompilationContext ctx = new(writer, new CompilationOptions());
-        await visitor._graph.CompileAsync(ctx);
+        await _graph.CompileAsync(ctx);
     }
 }

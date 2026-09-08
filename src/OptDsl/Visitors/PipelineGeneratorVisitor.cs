@@ -6,40 +6,40 @@ namespace OptDsl.Visitors;
 
 public class PipelineGeneratorVisitor : IAstVisitor<string>
 {
-    private string? _targetId;
+    private readonly List<TargetConfig> _configs = [];
     private OptimizationDefinition? _optDef = null;
 
     /// <summary>
     /// Generates the pass pipeline string to be given on the `opt` command.
     /// </summary>
     /// <param name="root">The root of the AST.</param>
-    /// <returns>A <see cref="CodeGenResult"/> that holds the file to apply the pipeline and the pipeline itself.</returns>
-    public CodeGenResult Generate(AstElement root)
+    /// <returns>A list of <see cref="TargetConfig"/> that holds the files to apply the pipelines and the pipelines themselves.</returns>
+    public IReadOnlyList<TargetConfig> Generate(AstElement root)
     {
-        string fullPipeline = root.Accept(this);
-        return new CodeGenResult(_targetId!, fullPipeline);
+        root.Accept(this);
+        return _configs;
     }
 
     public string Visit(AstTranslationUnit translationUnit)
     {
-        List<string> blocks = [];
         foreach (var child in translationUnit.Children)
         {
-            blocks.Add(child.Accept(this));
+            child.Accept(this);
         }
-        return string.Join(",", blocks);
+        return "";
     }
 
     public string Visit(AstOptimizationBlock optimizationBlock)
     {
-        _targetId = optimizationBlock.TargetFile;
-
         List<string> stmtList = [];
         foreach (var child in optimizationBlock.Children)
         {
             stmtList.Add(child.Accept(this));
         }
-        return string.Join(",", stmtList);
+        _configs.Add(
+            new TargetConfig(optimizationBlock.TargetFile, string.Join(",", stmtList))
+        );
+        return "";
     }
 
     public string Visit(AstScopeBlock scopeBlock)
